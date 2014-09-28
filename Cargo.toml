@@ -1,0 +1,5 @@
+[package]
+
+name = "spatial-rs"
+version = "0.0.1"
+authors = ["Eeli Reilin <eeli@fea.st>"]
