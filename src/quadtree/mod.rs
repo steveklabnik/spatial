@@ -19,12 +19,12 @@ pub struct Quadtree<'a, T: Primitive + Show, P: 'a + Index<T>> {
     /// Items in this quadtree node.
     items: Vec<&'a P>,
     /// Bounding volume of this node.
-    volume: Volume<T>,
+    pub volume: Volume<T>,
 
-    nw: Option<Box<Quadtree<'a, T, P>>>,
-    ne: Option<Box<Quadtree<'a, T, P>>>,
-    sw: Option<Box<Quadtree<'a, T, P>>>,
-    se: Option<Box<Quadtree<'a, T, P>>>
+    pub nw: Option<Box<Quadtree<'a, T, P>>>,
+    pub ne: Option<Box<Quadtree<'a, T, P>>>,
+    pub sw: Option<Box<Quadtree<'a, T, P>>>,
+    pub se: Option<Box<Quadtree<'a, T, P>>>
 }
 
 impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
