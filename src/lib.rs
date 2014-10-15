@@ -1,6 +1,7 @@
 use quadtree::Quadtree;
 pub mod quadtree;
 
+#[deriving(Clone)]
 struct Object {
     x: f32,
     y: f32

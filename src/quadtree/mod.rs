@@ -13,25 +13,25 @@ pub trait Index<T: Primitive + Show> {
     fn y(&self) -> T;
 }
 
-pub struct Quadtree<'a, T: Primitive + Show, P: 'a + Index<T>> {
+pub struct Quadtree<T: Primitive + Show, P: Index<T> + Clone> {
     /// Maximum number of items to store before subdivision.
     capacity: uint,
     /// Items in this quadtree node.
-    items: Vec<&'a P>,
+    items: Vec<P>,
     /// Bounding volume of this node.
     pub volume: Volume<T>,
 
-    pub nw: Option<Box<Quadtree<'a, T, P>>>,
-    pub ne: Option<Box<Quadtree<'a, T, P>>>,
-    pub sw: Option<Box<Quadtree<'a, T, P>>>,
-    pub se: Option<Box<Quadtree<'a, T, P>>>
+    pub nw: Option<Box<Quadtree<T, P>>>,
+    pub ne: Option<Box<Quadtree<T, P>>>,
+    pub sw: Option<Box<Quadtree<T, P>>>,
+    pub se: Option<Box<Quadtree<T, P>>>
 }
 
-impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
+impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
     /// Creates an empty quadtree with volume `vol` and default
     /// capacity.
     #[inline]
-    pub fn new(vol: Volume<T>) -> Quadtree<'a, T, P> {
+    pub fn new(vol: Volume<T>) -> Quadtree<T, P> {
         Quadtree {
             capacity: DEFAULT_CAPACITY,
             items: Vec::with_capacity(DEFAULT_CAPACITY),
@@ -45,7 +45,7 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
 
     /// Creates an empty quadtree with volume `vol` and `capacity`.
     #[inline]
-    pub fn with_capacity(vol: Volume<T>, capacity: uint) -> Quadtree<'a, T, P> {
+    pub fn with_capacity(vol: Volume<T>, capacity: uint) -> Quadtree<T, P> {
         Quadtree {
             capacity: capacity,
             items: Vec::with_capacity(capacity),
@@ -88,7 +88,7 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
     /// Inserts an `item` into the quadtree, subdividing it if
     /// necessary.
     #[inline]
-    pub fn insert(&mut self, item: &'a P) -> bool {
+    pub fn insert(&mut self, item: P) -> bool {
         // item must exist inside this quads' space.
         if !self.volume.contains((item.x(), item.y())) {
             return false;
@@ -96,7 +96,7 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
 
         // Insert item it there's room.
         if self.items.len() < self.capacity {
-            self.items.push(item);
+            self.items.push(item.clone());
             return true;
         }
 
@@ -106,28 +106,28 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
         }
 
         match self.nw {
-            Some(ref mut node) => if node.insert(item) {
+            Some(ref mut node) => if node.insert(item.clone()) {
                 return true;
             },
             None => {}
         }
 
         match self.ne {
-            Some(ref mut node) => if node.insert(item) {
+            Some(ref mut node) => if node.insert(item.clone()) {
                 return true;
             },
             None => {}
         }
 
         match self.sw {
-            Some(ref mut node) => if node.insert(item) {
+            Some(ref mut node) => if node.insert(item.clone()) {
                 return true;
             },
             None => {}
         }
 
         match self.se {
-            Some(ref mut node) => if node.insert(item) {
+            Some(ref mut node) => if node.insert(item.clone()) {
                 return true;
             },
             None => {}
@@ -138,7 +138,7 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
 
     /// Returns all items inside the volume `vol`.
     #[inline]
-    pub fn get_in_volume(&self, vol: Volume<T>) -> Vec<&P> {
+    pub fn get_in_volume<'a>(&'a self, vol: Volume<T>) -> Vec<&'a P> {
         let mut items = Vec::new();
 
         // Return empty vector if vol does not intersect.
@@ -149,7 +149,7 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
         // Add items for this node.
         for item in self.items.iter() {
             if vol.contains((item.x(), item.y())) {
-                items.push(*item);
+                items.push(item);
             }
         }
 
@@ -160,22 +160,22 @@ impl<'a, T: Primitive + Show, P: Index<T>> Quadtree<'a, T, P> {
         }
 
         match self.nw {
-            Some(ref node) => items.push_all(node.get_in_volume(vol)[]),
+            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
             None => {}
         }
 
         match self.ne {
-            Some(ref node) => items.push_all(node.get_in_volume(vol)[]),
+            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
             None => {}
         }
 
         match self.sw {
-            Some(ref node) => items.push_all(node.get_in_volume(vol)[]),
+            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
             None => {}
         }
 
         match self.se {
-            Some(ref node) => items.push_all(node.get_in_volume(vol)[]),
+            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
             None => {}
         }
 
