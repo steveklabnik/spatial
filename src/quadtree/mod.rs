@@ -21,25 +21,20 @@ pub struct Quadtree<T: Primitive + Show, P: Index<T> + Clone> {
     /// Bounding volume of this node.
     pub volume: Volume<T>,
 
-    pub nw: Option<Box<Quadtree<T, P>>>,
-    pub ne: Option<Box<Quadtree<T, P>>>,
-    pub sw: Option<Box<Quadtree<T, P>>>,
-    pub se: Option<Box<Quadtree<T, P>>>
+    /// The four quadrants of this node, in order of NW, NE, SW, SE.
+    pub quadrants: Option<[Box<Quadtree<T, P>>, ..4]>
 }
 
 impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
-    /// Creates an empty quadtree with volume `vol` and default
-    /// capacity.
+    /// Constructs a new, empty `Quadtree` with bounding volume `vol`
+    /// and default node capacity of `DEFAULT_CAPACITY`.
     #[inline]
     pub fn new(vol: Volume<T>) -> Quadtree<T, P> {
         Quadtree {
             capacity: DEFAULT_CAPACITY,
             items: Vec::with_capacity(DEFAULT_CAPACITY),
             volume: vol,
-            nw: None,
-            ne: None,
-            sw: None,
-            se: None
+            quadrants: None
         }
     }
 
@@ -50,10 +45,7 @@ impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
             capacity: capacity,
             items: Vec::with_capacity(capacity),
             volume: vol,
-            nw: None,
-            ne: None,
-            sw: None,
-            se: None
+            quadrants: None
         }
     }
 
@@ -62,23 +54,10 @@ impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
     pub fn len(&self) -> uint {
         let mut len = self.items.len();
 
-        match self.nw {
-            Some(ref node) => len += node.len(),
-            None => {}
-        }
-
-        match self.ne {
-            Some(ref node) => len += node.len(),
-            None => {}
-        }
-        
-        match self.sw {
-            Some(ref node) => len += node.len(),
-            None => {}
-        }
-        
-        match self.se {
-            Some(ref node) => len += node.len(),
+        match self.quadrants {
+            Some(ref quadrants) => for ref node in quadrants.iter() {
+                len += node.len();
+            },
             None => {}
         }
 
@@ -100,37 +79,13 @@ impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
             return true;
         }
 
-        match self.nw {
-            None => self.subdivide(),
-            _ => {}
-        }
-
-        match self.nw {
-            Some(ref mut node) => if node.insert(item.clone()) {
-                return true;
+        match self.quadrants {
+            Some(ref mut quadrants) => for node in quadrants.iter_mut() {
+                if node.insert(item.clone()) {
+                    return true;
+                }
             },
-            None => {}
-        }
-
-        match self.ne {
-            Some(ref mut node) => if node.insert(item.clone()) {
-                return true;
-            },
-            None => {}
-        }
-
-        match self.sw {
-            Some(ref mut node) => if node.insert(item.clone()) {
-                return true;
-            },
-            None => {}
-        }
-
-        match self.se {
-            Some(ref mut node) => if node.insert(item.clone()) {
-                return true;
-            },
-            None => {}
+            None => self.subdivide()
         }
 
         false
@@ -153,33 +108,15 @@ impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
             }
         }
 
-        // Terminate search if there are no child nodes.
-        match self.nw {
-            None => return items,
-            _ => ()
+        match self.quadrants {
+            Some(ref quadrants) => {
+                for ref node in quadrants.iter() {
+                    items.push_all(node.get_in_volume(vol).as_slice());
+                }
+                items
+            },
+            None => items
         }
-
-        match self.nw {
-            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
-            None => {}
-        }
-
-        match self.ne {
-            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
-            None => {}
-        }
-
-        match self.sw {
-            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
-            None => {}
-        }
-
-        match self.se {
-            Some(ref node) => items.push_all(node.get_in_volume(vol).as_slice()),
-            None => {}
-        }
-
-        items
     }
 
     /// Creates four equal sized subtrees for this node.
@@ -188,15 +125,13 @@ impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
         let (x, y) = self.volume.min;
         let (w, h) = self.volume.max;
         let (hw, hh) = (half(w), half(h));
-        
-        self.nw = Some(box Quadtree::with_capacity(
-            Volume::new((x, y), (hw, hh)), self.capacity));
-        self.ne = Some(box Quadtree::with_capacity(
-            Volume::new((x + hh, y), (w, hh)), self.capacity));
-        self.sw = Some(box Quadtree::with_capacity(
-            Volume::new((x, y + hh), (hw, h)), self.capacity));
-        self.se = Some(box Quadtree::with_capacity(
-            Volume::new((x + hw, y + hh), (w, h)), self.capacity));
+
+        self.quadrants = Some([
+            box Quadtree::with_capacity(Volume::new((x, y), (hw, hh)), self.capacity),
+            box Quadtree::with_capacity(Volume::new((x + hh, y), (w, hh)), self.capacity),
+            box Quadtree::with_capacity(Volume::new((x, y + hh), (hw, h)), self.capacity),
+            box Quadtree::with_capacity(Volume::new((x + hw, y + hh), (w, h)), self.capacity)
+        ]);
     }
 }
 
