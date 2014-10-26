@@ -1,4 +1,4 @@
-# spatial
+# spatial [![Build Status](https://travis-ci.org/gaudecker/spatial.svg?branch=master)](https://travis-ci.org/gaudecker/spatial)
 
 A library for generic spatial data structures.
 
