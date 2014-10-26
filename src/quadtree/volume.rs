@@ -9,7 +9,7 @@ pub struct Volume<T: Primitive> {
 
 impl<T: Primitive> Volume<T> {
     /// Create a new bounding volume from two points, where both `min`
-    /// and `max` are of format `(x, y)`.
+    /// and `max` are of format `[x, y]`.
     #[inline]
     pub fn new(min: [T, ..2], max: [T, ..2]) -> Volume<T> {
         Volume {
