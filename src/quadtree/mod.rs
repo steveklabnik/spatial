@@ -18,10 +18,9 @@ pub struct Quadtree<T: Primitive + Show, P: Index<T> + Clone> {
     /// Items in this quadtree node.
     items: Vec<P>,
     /// Bounding volume of this node.
-    pub volume: Volume<T>,
-
+    volume: Volume<T>,
     /// The four quadrants of this node, in order of NW, NE, SW, SE.
-    pub quadrants: Option<[Box<Quadtree<T, P>>, ..4]>
+    quadrants: Option<[Box<Quadtree<T, P>>, ..4]>
 }
 
 impl<T: Primitive + Show, P: Index<T> + Clone> Quadtree<T, P> {
