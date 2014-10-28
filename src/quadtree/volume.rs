@@ -3,7 +3,9 @@ use std::fmt;
 
 /// A two-dimensional bounding volume for a `Quadtree` node.
 pub struct Volume<T: Primitive> {
+    /// The upper-left corner.
     pub min: [T, ..2],
+    /// The lower-right corner.
     pub max: [T, ..2]
 }
 
@@ -17,12 +19,14 @@ impl<T: Primitive> Volume<T> {
             max: max
         }
     }
-    
+
+    /// Returns the upper-left corner.
     #[inline]
     pub fn min(&self) -> [T, ..2] {
         self.min
     }
-    
+
+    /// Returns the lower-right corner.
     #[inline]
     pub fn max(&self) -> [T, ..2] {
         self.max

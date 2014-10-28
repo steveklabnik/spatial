@@ -19,12 +19,14 @@ impl<T: Primitive> Volume<T> {
             max: max
         }
     }
-    
+
+    /// Returns the upper-top-left corner.
     #[inline]
     pub fn min(&self) -> [T, ..3] {
         self.min
     }
-    
+
+    /// Returns the lower-bottom-right corner.
     #[inline]
     pub fn max(&self) -> [T, ..3] {
         self.max

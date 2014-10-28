@@ -4,11 +4,14 @@ pub use self::volume::Volume;
 
 mod volume;
 
+/// The default capacity of a quadtree's node until it's subdivided.
 static DEFAULT_CAPACITY: uint = 8;
 
 /// A trait that must be implemented by types that are going to be
 /// inserted into a `Quadtree`.
 pub trait Index<T: Primitive + Show> {
+    /// This method returns the position for `self` in 2D-space. The
+    /// return format should be in order of `[x, y]`.
     fn quadtree_index(&self) -> [T, ..2];
 }
 
