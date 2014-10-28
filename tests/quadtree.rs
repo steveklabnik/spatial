@@ -25,7 +25,7 @@ impl Index<f32> for Object {
 
 
 #[test]
-fn main() {
+fn quadtree_insert_query() {
     let vol = Volume::new([0.0, 0.0], [1.0, 1.0]);
     let mut tree = Quadtree::new(vol);
     
